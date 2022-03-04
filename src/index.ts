@@ -24,7 +24,7 @@ export function decode(ddsBuffer: ArrayBufferLike): DecodedDDSData {
                 break;
             case DdsFormat.dxt2:
             case DdsFormat.dxt3:
-                imageBuffers.push(BC2Encoder.decode(imageDataView, width, height, format.toUpperCase()));
+                imageBuffers.push(BC2Encoder.decode(imageDataView, width, height, ddsData.format.toUpperCase()));
                 break;
             case DdsFormat.dxt4:
             case DdsFormat.dxt5:

@@ -1,6 +1,6 @@
 {
   "name": "@leoletto/dxt-encoder",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A simple JS implementation to help encoding and decoding DDS / DXT files",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

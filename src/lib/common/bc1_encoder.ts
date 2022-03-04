@@ -60,55 +60,6 @@ export namespace BC1Encoder {
         return DDSEncoder.DDSData.fromData(output, width, height, 'DXT1');
     }
 
-    export function decode(imageData: DataView, width: number, height: number) {
-        let rgba = new Uint8Array(width * height * 4),
-            height_4 = (height / 4) | 0,
-            width_4 = (width / 4) | 0,
-            offset = 0;
-
-        for (let h = 0; h < height_4; h++) {
-            for (let w = 0; w < width_4; w++) {
-                if (offset >= imageData.byteLength) break;
-
-                // Grab color0 and color1  32 bits
-                const color0 = Color.Pixel.fromRgb565(imageData.getUint16(offset, true));
-                const color1 = Color.Pixel.fromRgb565(imageData.getUint16(offset + 2, true));
-                let color2: Color.Pixel, color3: Color.Pixel;
-
-                if (color0.value <= color1.value) {
-                    color2 = color0.interpolate(color1, true);
-                    color3 = new Color.Pixel(0, 0, 0);
-                } else {
-                    color2 = color0.interpolate(color1, false, 1);
-                    color3 = color0.interpolate(color1, false, 2);
-                }
-
-                const colorValues = [color0, color1, color2, color3];
-
-                // Grab color indices 32 bits
-                const colorIndices = imageData.getUint32(offset + 4, true);
-
-                for (let y = 0; y < 4; y++) {
-                    for (let x = 0; x < 4; x++) {
-                        const pixelIndex = (3 - x) + (y * 4);
-                        const rgbaIndex = (h * 4 + 3 - y) * (width * 4) + (w * 4 + x) * 4;
-                        const colorIndex = (colorIndices >> (2 * (15 - pixelIndex))) & 0x03;
-
-                        rgba[rgbaIndex] = colorValues[colorIndex].red;
-                        rgba[rgbaIndex + 1] = colorValues[colorIndex].green;
-                        rgba[rgbaIndex + 2] = colorValues[colorIndex].blue;
-                        rgba[rgbaIndex + 3] = colorValues[colorIndex].alpha;
-                    }
-                }
-                offset += 8;
-            }
-
-            if (offset >= imageData.byteLength) break;
-        }
-
-        return rgba;
-    }
-
     /**
      * Encode the given BC1 block
      */
@@ -160,5 +111,54 @@ export namespace BC1Encoder {
         }
 
         return bc1Block;
+    }
+
+    export function decode(imageData: DataView, width: number, height: number): Uint8Array {
+        let rgba = new Uint8Array(width * height * 4),
+            height_4 = (height / 4) | 0,
+            width_4 = (width / 4) | 0,
+            offset = 0;
+
+        for (let h = 0; h < height_4; h++) {
+            for (let w = 0; w < width_4; w++) {
+                if (offset >= imageData.byteLength) break;
+
+                // Grab color0 and color1  32 bits
+                const color0 = Color.Pixel.fromRgb565(imageData.getUint16(offset, true));
+                const color1 = Color.Pixel.fromRgb565(imageData.getUint16(offset + 2, true));
+                let color2: Color.Pixel, color3: Color.Pixel;
+
+                if (color0.value <= color1.value) {
+                    color2 = color0.interpolate(color1, true);
+                    color3 = new Color.Pixel(0, 0, 0);
+                } else {
+                    color2 = color0.interpolate(color1, false, 1);
+                    color3 = color0.interpolate(color1, false, 2);
+                }
+
+                const colorValues = [color0, color1, color2, color3];
+
+                // Grab color indices 32 bits
+                const colorIndices = imageData.getUint32(offset + 4, true);
+
+                for (let y = 0; y < 4; y++) {
+                    for (let x = 0; x < 4; x++) {
+                        const pixelIndex = (3 - x) + (y * 4);
+                        const rgbaIndex = (h * 4 + 3 - y) * (width * 4) + (w * 4 + x) * 4;
+                        const colorIndex = (colorIndices >> (2 * (15 - pixelIndex))) & 0x03;
+
+                        rgba[rgbaIndex] = colorValues[colorIndex].red;
+                        rgba[rgbaIndex + 1] = colorValues[colorIndex].green;
+                        rgba[rgbaIndex + 2] = colorValues[colorIndex].blue;
+                        rgba[rgbaIndex + 3] = colorValues[colorIndex].alpha;
+                    }
+                }
+                offset += 8;
+            }
+
+            if (offset >= imageData.byteLength) break;
+        }
+
+        return rgba;
     }
 }
